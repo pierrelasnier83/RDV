@@ -291,9 +291,85 @@
   .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.35; }
   .empty-state h2 { font-size: 18px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
   .empty-state p { font-size: 14px; }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE — mobile (≤ 640px)
+  ══════════════════════════════════════ */
+  @media (max-width: 640px) {
+
+    /* Sidebar : cachée par défaut, glisse depuis la gauche en overlay */
+    .sidebar {
+      width: 80vw; max-width: 280px;
+      transform: translateX(-100%);
+      box-shadow: var(--shadow-lg);
+    }
+    .sidebar.open { transform: translateX(0); }
+    /* En mode mobile, "collapsed" ne s'applique plus — on utilise "open" */
+    .sidebar.collapsed { transform: translateX(-100%); }
+
+    /* Overlay sombre derrière la sidebar */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 99;
+      background: rgba(0,0,0,0.35);
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    /* Le tab de toggle devient un burger en haut à gauche */
+    .sidebar-toggle-tab {
+      left: 12px; top: 14px;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+    }
+    .sidebar-toggle-tab.collapsed { left: 12px; }
+
+    /* Main : pleine largeur, plus de margin-left */
+    .main {
+      margin-left: 0 !important;
+      padding: 20px 12px 100px;
+    }
+
+    /* Page : pleine largeur, pas de padding latéral superflu */
+    .page { max-width: 100%; }
+
+    /* Card : padding réduit */
+    .card { padding: 18px 16px; }
+
+    /* Grilles 2 colonnes → 1 colonne */
+    .row { grid-template-columns: 1fr; gap: 10px; }
+
+    /* Inputs plus grands pour le touch */
+    input[type=text], input[type=email], input[type=date],
+    input[type=time], textarea, select {
+      font-size: 16px; /* évite le zoom auto sur iOS */
+      padding: 12px 13px;
+    }
+
+    /* Bouton submit plus haut */
+    .btn-submit { padding: 15px; font-size: 16px; }
+
+    /* User bar : texte légèrement réduit */
+    .user-name { font-size: 13px; }
+    .user-email { font-size: 11px; }
+
+    /* Presets wrap */
+    .presets { flex-wrap: wrap; gap: 8px; }
+
+    /* Empty state : moins de padding en haut */
+    .empty-state { padding-top: 40px; }
+
+    /* Auth section padding */
+    #auth-section { padding: 24px 18px; }
+
+    /* Config section */
+    #config-section { padding: 20px 16px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- Overlay mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
@@ -700,18 +776,37 @@ function showPage(name) {
 }
 
 
+function isMobile() { return window.innerWidth <= 640; }
+
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const main = document.getElementById('main-content');
-  const tab = document.getElementById('sidebar-tab');
-  const icon = document.getElementById('tab-icon');
-  const collapsed = sidebar.classList.toggle('collapsed');
-  main.classList.toggle('expanded', collapsed);
-  tab.classList.toggle('collapsed', collapsed);
-  icon.innerHTML = collapsed
-    ? '<path d="M9 18l6-6-6-6"/>'
-    : '<path d="M15 18l-6-6 6-6"/>';
+  if (isMobile()) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible', isOpen);
+  } else {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main-content');
+    const tab = document.getElementById('sidebar-tab');
+    const icon = document.getElementById('tab-icon');
+    const collapsed = sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded', collapsed);
+    tab.classList.toggle('collapsed', collapsed);
+    icon.innerHTML = collapsed
+      ? '<path d="M9 18l6-6-6-6"/>'
+      : '<path d="M15 18l-6-6 6-6"/>';
+  }
 }
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('visible');
+}
+
+// Fermer sidebar si on clique un nav-item sur mobile
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => { if (isMobile()) closeSidebar(); });
+});
 </script>
 
 <!-- Page: Déployer un planning -->
